@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>DnD 5e Sheet Manager</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #111;
+      --bg-alt: #181818;
+      --accent: #c49a4a;
+      --accent-soft: #3b2b15;
+      --text: #eee;
+      --muted: #999;
+      --danger: #c0392b;
+      --radius: 6px;
+      --gap: 0.75rem;
+      --border: 1px solid #333;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background: radial-gradient(circle at top, #252525 0, #050505 55%);
+      color: var(--text);
+    }
+    .app {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    header h1 {
+      font-size: 1.4rem;
+      margin: 0;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .badge {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+      gap: 1rem;
+      align-items: flex-start;
+    }
+    @media (max-width: 800px) {
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+    .panel {
+      background: rgba(5, 5, 5, 0.85);
+      border-radius: var(--radius);
+      border: var(--border);
+      padding: 0.75rem;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.7),
+        0 18px 40px rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(6px);
+    }
+    .panel h2 {
+      font-size: 0.95rem;
+      margin: 0 0 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--muted);
+    }
+    .side-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .side-actions { display: flex; gap: 0.4rem; }
+    .input {
+      width: 100%;
+      padding: 0.45rem 0.5rem;
+      border-radius: 999px;
+      border: 1px solid #333;
+      background: #060606;
+      color: var(--text);
+      font-size: 0.85rem;
+    }
+    .input::placeholder { color: #555; }
+    .btn {
+      border-radius: 999px;
+      border: none;
+      padding: 0.4rem 0.75rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      background: var(--accent-soft);
+      color: var(--accent);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      white-space: nowrap;
+    }
+    .btn-primary { background: var(--accent); color: #111; }
+    .btn-danger { background: rgba(192, 57, 43, 0.14); color: var(--danger); }
+    .btn:disabled { opacity: 0.4; cursor: default; }
+    .btn-sm { padding: 0.25rem 0.55rem; font-size: 0.75rem; }
+    .char-list {
+      margin-top: 0.5rem;
+      max-height: 55vh;
+      overflow: auto;
+      padding-right: 2px;
+    }
+    .char-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.35rem 0.4rem;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 0.82rem;
+    }
+    .char-item.active {
+      background: radial-gradient(circle at left, #c49a4a33, transparent);
+      box-shadow: inset 0 0 0 1px rgba(196, 154, 74, 0.4);
+    }
+    .char-main { display: flex; flex-direction: column; }
+    .char-name-row { display: flex; align-items: center; gap: 0.4rem; }
+    .dot {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--accent);
+      flex-shrink: 0;
+    }
+    .char-name { font-weight: 600; }
+    .char-meta { font-size: 0.7rem; color: var(--muted); }
+    .empty-note { font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem; }
+    .main-panel {
+      background: rgba(5, 5, 5, 0.9);
+      border-radius: var(--radius);
+      border: var(--border);
+      padding: 0.75rem;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.7),
+        0 18px 40px rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      max-height: calc(100vh - 110px);
+      overflow: auto;
+    }
+    .main-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .main-header-left { display: flex; flex-direction: column; gap: 0.1rem; }
+    .current-name { font-size: 1rem; font-weight: 600; }
+    .current-sub { font-size: 0.75rem; color: var(--muted); }
+    .main-header-right { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+    .pill {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      border: 1px solid #333;
+      color: var(--muted);
+    }
+    .pill-danger { color: var(--danger); border-color: rgba(192, 57, 43, 0.7); }
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 0.5rem;
+    }
+    .tab {
+      padding: 0.3rem 0.7rem;
+      font-size: 0.78rem;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      background: #090909;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .tab.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+    .field-group {
+      background: #090909;
+      border-radius: var(--radius);
+      padding: 0.5rem;
+      border: 1px solid #262626;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .field-group-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+    .grid { display: grid; gap: 0.75rem; }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    @media (max-width: 800px) {
+      .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    .field { display: flex; flex-direction: column; gap: 0.15rem; flex: 1; min-width: 0; }
+    .field label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+    .field input, .field textarea {
+      width: 100%;
+      padding: 0.35rem 0.4rem;
+      border-radius: 4px;
+      border: 1px solid #333;
+      background: #050505;
+      color: var(--text);
+      font-size: 0.85rem;
+    }
+    .field textarea { min-height: 60px; resize: vertical; }
+    .field input:focus, .field textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(196, 154, 74, 0.4);
+    }
+    .classic {
+      border-radius: var(--radius);
+      border: 1px solid #333;
+      padding: 0.5rem;
+      background: radial-gradient(circle at top left, #1c1510, #050505);
+      font-size: 0.8rem;
+    }
+    .classic-line {
+      border-bottom: 1px solid #444;
+      padding: 0.1rem 0;
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+    .classic-label {
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.65rem;
+      color: var(--muted);
+    }
+    .classic-value { font-weight: 600; text-align: right; }
+    footer {
+      margin-top: auto;
+      padding: 0.5rem 0 0.25rem;
+      font-size: 0.7rem;
+      text-align: center;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div>
+        <h1>Archivio Schede DnD 5e</h1>
+        <div style="font-size:0.8rem;color:#777;">
+          Dati sincronizzati su Google Drive (Apps Script).
+        </div>
+      </div>
+      <div class="badge" id="syncBadge">Sync: sconosciuto</div>
+    </header>
+
+    <div class="layout">
+      <aside class="panel">
+        <div class="side-header">
+          <h2>Personaggi</h2>
+          <div class="side-actions">
+            <button id="newCharBtn" class="btn btn-primary btn-sm">✚ Nuovo</button>
+          </div>
+        </div>
+        <input id="searchInput" class="input" placeholder="Cerca nome, classe, razza…" />
+        <div class="char-list" id="charList"></div>
+        <div class="empty-note" id="charEmptyNote">
+          Nessun personaggio salvato. Crea un nuovo PG con “Nuovo”.
+        </div>
+      </aside>
+
+      <main class="main-panel">
+        <div class="main-header">
+          <div class="main-header-left">
+            <div class="current-name" id="currentName">Nessun PG selezionato</div>
+            <div class="current-sub" id="currentSub">
+              Crea o seleziona un personaggio dalla lista a sinistra.
+            </div>
+          </div>
+          <div class="main-header-right">
+            <span class="pill" id="statusPill">Non salvato</span>
+            <button id="saveBtn" class="btn btn-primary btn-sm" disabled>💾 Salva</button>
+            <button id="deleteBtn" class="btn btn-danger btn-sm" disabled>🗑 Elimina</button>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <button class="tab active" data-tab="base">Base</button>
+          <button class="tab" data-tab="notes">Note</button>
+          <button class="tab" data-tab="classic">Scheda</button>
+        </div>
+
+        <section data-panel="base">
+          <div class="field-group">
+            <div class="field-group-title">Identità</div>
+            <div class="grid grid-2">
+              <div class="field">
+                <label>Nome PG</label>
+                <input id="f_name" />
+              </div>
+              <div class="field">
+                <label>Giocatore</label>
+                <input id="f_player" />
+              </div>
+            </div>
+            <div class="grid grid-3">
+              <div class="field">
+                <label>Classe</label>
+                <input id="f_class" />
+              </div>
+              <div class="field">
+                <label>Livello</label>
+                <input id="f_level" type="number" min="1" max="20" />
+              </div>
+              <div class="field">
+                <label>Razza</label>
+                <input id="f_race" />
+              </div>
+            </div>
+            <div class="grid grid-3">
+              <div class="field">
+                <label>Background</label>
+                <input id="f_background" />
+              </div>
+              <div class="field">
+                <label>Allineamento</label>
+                <input id="f_alignment" />
+              </div>
+              <div class="field">
+                <label>Esperienza</label>
+                <input id="f_xp" type="number" min="0" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section data-panel="notes" hidden>
+          <div class="field-group">
+            <div class="field-group-title">Note</div>
+            <div class="field">
+              <textarea id="f_notes"></textarea>
+            </div>
+          </div>
+        </section>
+
+        <section data-panel="classic" hidden>
+          <div class="field-group">
+            <div class="field-group-title">Scheda classica</div>
+            <div class="classic" id="classicView">
+              Seleziona un personaggio per vedere la scheda.
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <footer>
+      Dati sincronizzati su Google Drive tramite Apps Script.
+    </footer>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "dnd_chars_v1";
+    const API_URL = "https://script.google.com/macros/s/AKfycbzA7XMGz9bB1QAgSA3T2PptjiyuCwLZevQu7CcplvGa9ZULo77vtJA9TDYs81vZBjA70g/exec";
+
+    function loadAllCharsLocal() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return [];
+        const arr = JSON.parse(raw);
+        if (!Array.isArray(arr)) return [];
+        return arr;
+      } catch (e) {
+        console.error(e);
+        return [];
+      }
+    }
+    function saveAllCharsLocal(chars) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(chars));
+    }
+
+    let chars = loadAllCharsLocal();
+    let currentId = null;
+    let dirty = false;
+
+    const fields = ["name","player","class","level","race","background","alignment","xp","notes"];
+
+    function fieldEl(key) { return document.getElementById("f_" + key); }
+
+    function collectForm() {
+      const o = {};
+      fields.forEach(k => {
+        const el = fieldEl(k);
+        if (!el) return;
+        o[k] = el.value || "";
+      });
+      return o;
+    }
+    function applyForm(obj) {
+      fields.forEach(k => {
+        const el = fieldEl(k);
+        if (!el) return;
+        el.value = (obj && obj[k]) || "";
+      });
+    }
+
+    function setDirty(v) {
+      dirty = v;
+      const pill = document.getElementById("statusPill");
+      pill.textContent = v ? "Modifiche non salvate" : "Salvato";
+      pill.classList.toggle("pill-danger", v);
+      document.getElementById("saveBtn").disabled = !v || !currentId;
+    }
+
+    function updateHeader() {
+      const nameEl = document.getElementById("currentName");
+      const subEl = document.getElementById("currentSub");
+      if (!currentId) {
+        nameEl.textContent = "Nessun PG selezionato";
+        subEl.textContent = "Crea o seleziona un personaggio dalla lista a sinistra.";
+        return;
+      }
+      const d = collectForm();
+      nameEl.textContent = d.name || "(senza nome)";
+      const meta = [];
+      if (d.level) meta.push("Lv " + d.level);
+      if (d.class) meta.push(d.class);
+      if (d.race) meta.push(d.race);
+      subEl.textContent = meta.join(" · ") || "Scheda DnD 5e";
+    }
+
+    function updateClassic() {
+      const el = document.getElementById("classicView");
+      if (!currentId) {
+        el.textContent = "Seleziona un personaggio per vedere la scheda.";
+        return;
+      }
+      const d = collectForm();
+      el.innerHTML = `
+        <div class="classic-line">
+          <span class="classic-label">Nome</span>
+          <span class="classic-value">${d.name || ""}</span>
+        </div>
+        <div class="classic-line">
+          <span class="classic-label">Classe & Livello</span>
+          <span class="classic-value">${(d.class || "") + (d.level ? " " + d.level : "")}</span>
+        </div>
+        <div class="classic-line">
+          <span class="classic-label">Razza</span>
+          <span class="classic-value">${d.race || ""}</span>
+        </div>
+        <div class="classic-line">
+          <span class="classic-label">Background</span>
+          <span class="classic-value">${d.background || ""}</span>
+        </div>
+        <div class="classic-line">
+          <span class="classic-label">Allineamento</span>
+          <span class="classic-value">${d.alignment || ""}</span>
+        </div>
+        <div class="classic-line">
+          <span class="classic-label">XP</span>
+          <span class="classic-value">${d.xp || ""}</span>
+        </div>
+        <div class="classic-line">
+          <span class="classic-label">Note</span>
+          <span class="classic-value">${(d.notes || "").split("\\n").join(" · ")}</span>
+        </div>
+      `;
+    }
+
+    function renderCharList(filter = "") {
+      const listEl = document.getElementById("charList");
+      const emptyNote = document.getElementById("charEmptyNote");
+      listEl.innerHTML = "";
+      const q = filter.trim().toLowerCase();
+      const filtered = chars.filter(c => {
+        if (!q) return true;
+        const text = (c.name || "") + " " + (c.class || "") + " " + (c.race || "");
+        return text.toLowerCase().includes(q);
+      });
+      filtered.forEach(c => {
+        const div = document.createElement("div");
+        div.className = "char-item" + (c.id === currentId ? " active" : "");
+        div.dataset.id = c.id;
+        const main = document.createElement("div");
+        main.className = "char-main";
+        const row = document.createElement("div");
+        row.className = "char-name-row";
+        const dot = document.createElement("span");
+        dot.className = "dot";
+        const name = document.createElement("span");
+        name.className = "char-name";
+        name.textContent = c.name || "(senza nome)";
+        row.appendChild(dot); row.appendChild(name);
+        const meta = document.createElement("div");
+        meta.className = "char-meta";
+        meta.textContent = ((c.level ? "Lv " + c.level + " · " : "") + (c.class || "") + " " + (c.race || "")).trim();
+        main.appendChild(row); main.appendChild(meta);
+        div.appendChild(main);
+        div.addEventListener("click", () => loadChar(c.id));
+        listEl.appendChild(div);
+      });
+      emptyNote.style.display = chars.length ? "none" : "block";
+    }
+
+    function newChar() {
+      if (dirty && !confirm("Ci sono modifiche non salvate. Continuare?")) return;
+      const id = Date.now().toString(36);
+      const c = { id, name: "", class: "", level: "", race: "" };
+      chars.push(c);
+      saveAllCharsLocal(chars);
+      currentId = id;
+      applyForm(c);
+      setDirty(false);
+      updateHeader();
+      updateClassic();
+      renderCharList(document.getElementById("searchInput").value);
+      document.getElementById("deleteBtn").disabled = false;
+    }
+
+    function loadChar(id) {
+      if (dirty && !confirm("Ci sono modifiche non salvate. Continuare?")) return;
+      const c = chars.find(x => x.id === id);
+      if (!c) return;
+      currentId = id;
+      applyForm(c);
+      setDirty(false);
+      updateHeader();
+      updateClassic();
+      renderCharList(document.getElementById("searchInput").value);
+      document.getElementById("deleteBtn").disabled = false;
+    }
+
+    async function saveCurrent() {
+      if (!currentId) return;
+      const data = collectForm();
+      data.id = currentId;
+      const idx = chars.findIndex(c => c.id === currentId);
+      if (idx >= 0) chars[idx] = data; else chars.push(data);
+      saveAllCharsLocal(chars);
+      renderCharList(document.getElementById("searchInput").value);
+      setDirty(false);
+      updateHeader();
+      updateClassic();
+      document.getElementById("deleteBtn").disabled = false;
+      await syncToServer();
+    }
+
+    function deleteCurrent() {
+      if (!currentId) return;
+      if (!confirm("Eliminare questo personaggio?")) return;
+      chars = chars.filter(c => c.id !== currentId);
+      saveAllCharsLocal(chars);
+      currentId = null;
+      applyForm({});
+      setDirty(false);
+      updateHeader();
+      updateClassic();
+      renderCharList(document.getElementById("searchInput").value);
+      document.getElementById("deleteBtn").disabled = true;
+      syncToServer();
+    }
+
+    fields.forEach(k => {
+      const el = fieldEl(k);
+      if (!el) return;
+      el.addEventListener("input", () => {
+        if (!currentId) return;
+        setDirty(true);
+        updateHeader();
+        updateClassic();
+      });
+    });
+
+    document.getElementById("newCharBtn").addEventListener("click", newChar);
+    document.getElementById("saveBtn").addEventListener("click", saveCurrent);
+    document.getElementById("deleteBtn").addEventListener("click", deleteCurrent);
+    document.getElementById("searchInput").addEventListener("input", e => {
+      renderCharList(e.target.value);
+    });
+
+    document.querySelectorAll(".tab").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const tab = btn.dataset.tab;
+        document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b === btn));
+        document.querySelectorAll("[data-panel]").forEach(p => {
+          p.hidden = p.dataset.panel !== tab;
+        });
+      });
+    });
+
+    async function syncFromServer() {
+      const badge = document.getElementById("syncBadge");
+      try {
+        badge.textContent = "Sync: caricamento…";
+        const res = await fetch(API_URL);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        if (Array.isArray(data.characters)) {
+          chars = data.characters;
+          saveAllCharsLocal(chars);
+          renderCharList("");
+          badge.textContent = "Sync: OK (Drive)";
+        } else {
+          badge.textContent = "Sync: file vuoto (Drive)";
+        }
+      } catch (err) {
+        console.error(err);
+        badge.textContent = "Sync: errore (uso cache locale)";
+        renderCharList("");
+      }
+    }
+
+    async function syncToServer() {
+      const badge = document.getElementById("syncBadge");
+      try {
+        badge.textContent = "Sync: invio…";
+        const payload = { characters: chars };
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.ok) {
+          badge.textContent = "Sync: OK (Drive)";
+        } else {
+          badge.textContent = "Sync: errore salvataggio";
+        }
+      } catch (err) {
+        console.error(err);
+        badge.textContent = "Sync: errore salvataggio";
+      }
+    }
+
+    renderCharList("");
+    setDirty(false);
+    document.getElementById("deleteBtn").disabled = !currentId;
+    syncFromServer();
+  </script>
+</body>
+</html>
