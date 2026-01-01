@@ -2,674 +2,413 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>DnD 5e Sheet Manager</title>
+  <title>DnD 5e Scheda PG Completa</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
-      --bg: #111;
-      --bg-alt: #181818;
-      --accent: #c49a4a;
-      --accent-soft: #3b2b15;
-      --text: #eee;
-      --muted: #999;
-      --danger: #c0392b;
-      --radius: 6px;
-      --gap: 0.75rem;
-      --border: 1px solid #333;
+      --bg: #f4e8c1; --bg-alt: #d9b38c; --accent: #8b4513; --accent-soft: #cd853f;
+      --text: #2c1810; --muted: #654321; --border: #a0522d; --danger: #b22222;
+      --success: #228b22; font-family: 'Georgia', serif; font-size: 14px;
     }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-        sans-serif;
-      background: radial-gradient(circle at top, #252525 0, #050505 55%);
-      color: var(--text);
-    }
-    .app {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 1rem;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-    header {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.75rem;
-    }
-    header h1 {
-      font-size: 1.4rem;
-      margin: 0;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
-    .badge {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      padding: 0.2rem 0.5rem;
-      border-radius: 999px;
-      border: 1px solid var(--accent);
-      color: var(--accent);
-    }
-    .layout {
-      display: grid;
-      grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
-      gap: 1rem;
-      align-items: flex-start;
-    }
-    @media (max-width: 800px) {
-      .layout {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-    .panel {
-      background: rgba(5, 5, 5, 0.85);
-      border-radius: var(--radius);
-      border: var(--border);
-      padding: 0.75rem;
-      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.7),
-        0 18px 40px rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(6px);
-    }
-    .panel h2 {
-      font-size: 0.95rem;
-      margin: 0 0 0.4rem;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      color: var(--muted);
-    }
-    .side-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.5rem;
-      margin-bottom: 0.5rem;
-    }
-    .side-actions { display: flex; gap: 0.4rem; }
-    .input {
-      width: 100%;
-      padding: 0.45rem 0.5rem;
-      border-radius: 999px;
-      border: 1px solid #333;
-      background: #060606;
-      color: var(--text);
-      font-size: 0.85rem;
-    }
-    .input::placeholder { color: #555; }
-    .btn {
-      border-radius: 999px;
-      border: none;
-      padding: 0.4rem 0.75rem;
-      font-size: 0.8rem;
-      cursor: pointer;
-      background: var(--accent-soft);
-      color: var(--accent);
-      display: inline-flex;
-      align-items: center;
-      gap: 0.25rem;
-      white-space: nowrap;
-    }
-    .btn-primary { background: var(--accent); color: #111; }
-    .btn-danger { background: rgba(192, 57, 43, 0.14); color: var(--danger); }
-    .btn:disabled { opacity: 0.4; cursor: default; }
-    .btn-sm { padding: 0.25rem 0.55rem; font-size: 0.75rem; }
-    .char-list {
-      margin-top: 0.5rem;
-      max-height: 55vh;
-      overflow: auto;
-      padding-right: 2px;
-    }
-    .char-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.5rem;
-      padding: 0.35rem 0.4rem;
-      border-radius: 999px;
-      cursor: pointer;
-      font-size: 0.82rem;
-    }
-    .char-item.active {
-      background: radial-gradient(circle at left, #c49a4a33, transparent);
-      box-shadow: inset 0 0 0 1px rgba(196, 154, 74, 0.4);
-    }
-    .char-main { display: flex; flex-direction: column; }
-    .char-name-row { display: flex; align-items: center; gap: 0.4rem; }
-    .dot {
-      width: 8px; height: 8px; border-radius: 50%; background: var(--accent);
-      flex-shrink: 0;
-    }
-    .char-name { font-weight: 600; }
-    .char-meta { font-size: 0.7rem; color: var(--muted); }
-    .empty-note { font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem; }
-    .main-panel {
-      background: rgba(5, 5, 5, 0.9);
-      border-radius: var(--radius);
-      border: var(--border);
-      padding: 0.75rem;
-      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.7),
-        0 18px 40px rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(8px);
-      display: flex;
-      flex-direction: column;
-      gap: 0.6rem;
-      max-height: calc(100vh - 110px);
-      overflow: auto;
-    }
-    .main-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-    .main-header-left { display: flex; flex-direction: column; gap: 0.1rem; }
-    .current-name { font-size: 1rem; font-weight: 600; }
-    .current-sub { font-size: 0.75rem; color: var(--muted); }
-    .main-header-right { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
-    .pill {
-      font-size: 0.7rem;
-      padding: 0.2rem 0.5rem;
-      border-radius: 999px;
-      border: 1px solid #333;
-      color: var(--muted);
-    }
-    .pill-danger { color: var(--danger); border-color: rgba(192, 57, 43, 0.7); }
-    .tabs {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-      margin-bottom: 0.5rem;
-    }
-    .tab {
-      padding: 0.3rem 0.7rem;
-      font-size: 0.78rem;
-      border-radius: 999px;
-      border: 1px solid transparent;
-      background: #090909;
-      color: var(--muted);
-      cursor: pointer;
-    }
-    .tab.active {
-      border-color: var(--accent);
-      color: var(--accent);
-      background: var(--accent-soft);
-    }
-    .field-group {
-      background: #090909;
-      border-radius: var(--radius);
-      padding: 0.5rem;
-      border: 1px solid #262626;
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-    }
-    .field-group-title {
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-    }
-    .grid { display: grid; gap: 0.75rem; }
-    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    @media (max-width: 800px) {
-      .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
-    .field { display: flex; flex-direction: column; gap: 0.15rem; flex: 1; min-width: 0; }
-    .field label {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-    }
-    .field input, .field textarea {
-      width: 100%;
-      padding: 0.35rem 0.4rem;
-      border-radius: 4px;
-      border: 1px solid #333;
-      background: #050505;
-      color: var(--text);
-      font-size: 0.85rem;
-    }
-    .field textarea { min-height: 60px; resize: vertical; }
-    .field input:focus, .field textarea:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px rgba(196, 154, 74, 0.4);
-    }
-    .classic {
-      border-radius: var(--radius);
-      border: 1px solid #333;
-      padding: 0.5rem;
-      background: radial-gradient(circle at top left, #1c1510, #050505);
-      font-size: 0.8rem;
-    }
-    .classic-line {
-      border-bottom: 1px solid #444;
-      padding: 0.1rem 0;
-      display: flex;
-      justify-content: space-between;
-      gap: 0.5rem;
-    }
-    .classic-label {
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      font-size: 0.65rem;
-      color: var(--muted);
-    }
-    .classic-value { font-weight: 600; text-align: right; }
-    footer {
-      margin-top: auto;
-      padding: 0.5rem 0 0.25rem;
-      font-size: 0.7rem;
-      text-align: center;
-      color: var(--muted);
-    }
+    @media (max-width: 768px) { :root { font-size: 12px; } }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); padding: 1rem; max-width: 1400px; margin: auto; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; background: var(--bg-alt); padding: 1rem; border-radius: 8px; }
+    .badge { padding: 0.5rem 1rem; border-radius: 20px; font-weight: bold; }
+    .sync-ok { background: var(--success); color: white; }
+    .sync-err { background: var(--danger); color: white; }
+    .search { flex: 1; margin: 0 1rem; }
+    input[type="search"] { width: 100%; padding: 0.5rem; border: 2px solid var(--border); border-radius: 4px; }
+    .btn { padding: 0.5rem 1rem; margin: 0 0.25rem; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-danger { background: var(--danger); color: white; }
+    .char-list { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .char-item { background: var(--bg-alt); padding: 1rem; border-radius: 8px; cursor: pointer; min-width: 200px; flex: 1; }
+    .char-item:hover { background: var(--accent-soft); }
+    .char-item.active { border: 3px solid var(--accent); }
+    nav { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+    nav .btn { flex: 1; }
+    .section { display: none; background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 1rem; }
+    .section.active { display: block; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    label { font-weight: bold; display: block; margin-bottom: 0.25rem; }
+    input, textarea, select { width: 100%; padding: 0.5rem; border: 2px solid var(--border); border-radius: 4px; font-size: inherit; }
+    textarea { height: 4rem; resize: vertical; }
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .stat { text-align: center; background: var(--bg-alt); padding: 1rem; border-radius: 8px; }
+    .stat-score { font-size: 2rem; font-weight: bold; }
+    .attacks-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+    .attack { background: var(--bg-alt); padding: 1rem; border-radius: 8px; }
+    .tag-filter { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+    .tag-btn { background: var(--muted); color: white; padding: 0.25rem 0.75rem; border-radius: 20px; cursor: pointer; font-size: 0.8rem; }
+    .tag-btn.active { background: var(--accent); }
+    .tagged-items { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
+    .tagged-item { background: var(--bg-alt); padding: 1rem; border-radius: 8px; }
+    .print-view { background: white; max-width: 850px; margin: auto; padding: 2rem; font-size: 10px; }
+    .print-view .grid { grid-template-columns: repeat(6, 1fr); }
+    @media print { body { padding: 0; } .print-view { box-shadow: none; } }
+    .dirty { border-color: var(--danger); }
+    @media (max-width: 768px) { .grid, .stats-grid { grid-template-columns: 1fr; } nav { flex-direction: column; } }
   </style>
 </head>
 <body>
-  <div class="app">
-    <header>
+  <div class="header">
+    <h1>D&D 5e Scheda PG</h1>
+    <div class="badge sync-ok" id="syncBadge">Sync: caricamento...</div>
+  </div>
+  <input type="search" id="searchInput" placeholder="Cerca PG per nome/classe...">
+  <div class="char-list" id="charList"></div>
+  <button class="btn btn-primary" onclick="newChar()">✚ Nuovo PG</button>
+  <nav>
+    <button class="btn btn-primary active" onclick="showSection('edit')">Modifica</button>
+    <button class="btn btn-primary" onclick="showSection('tags')">Tag/Filtri</button>
+    <button class="btn btn-primary" onclick="showPrintView()">Scheda Ufficiale</button>
+  </nav>
+  
+  <!-- Sezione Modifica -->
+  <div id="edit" class="section active">
+    <div class="grid">
       <div>
-        <h1>Archivio Schede DnD 5e</h1>
-        <div style="font-size:0.8rem;color:#777;">
-          Dati sincronizzati su Google Drive (Apps Script).
-        </div>
+        <label>Nome PG</label><input id="name">
+        <label>Classe/Livello</label><input id="classLevel">
+        <label>Razza/Background</label><input id="raceBg">
+        <label>HP Max/Current</label><input id="hp">
+        <label>AC</label><input id="ac">
+        <label>Iniziativa</label><input id="initiative">
+        <label>Velocità</label><input id="speed">
       </div>
-      <div class="badge" id="syncBadge">Sync: sconosciuto</div>
-    </header>
-
-    <div class="layout">
-      <aside class="panel">
-        <div class="side-header">
-          <h2>Personaggi</h2>
-          <div class="side-actions">
-            <button id="newCharBtn" class="btn btn-primary btn-sm">✚ Nuovo</button>
-          </div>
-        </div>
-        <input id="searchInput" class="input" placeholder="Cerca nome, classe, razza…" />
-        <div class="char-list" id="charList"></div>
-        <div class="empty-note" id="charEmptyNote">
-          Nessun personaggio salvato. Crea un nuovo PG con “Nuovo”.
-        </div>
-      </aside>
-
-      <main class="main-panel">
-        <div class="main-header">
-          <div class="main-header-left">
-            <div class="current-name" id="currentName">Nessun PG selezionato</div>
-            <div class="current-sub" id="currentSub">
-              Crea o seleziona un personaggio dalla lista a sinistra.
-            </div>
-          </div>
-          <div class="main-header-right">
-            <span class="pill" id="statusPill">Non salvato</span>
-            <button id="saveBtn" class="btn btn-primary btn-sm" disabled>💾 Salva</button>
-            <button id="deleteBtn" class="btn btn-danger btn-sm" disabled>🗑 Elimina</button>
-          </div>
-        </div>
-
-        <div class="tabs">
-          <button class="tab active" data-tab="classic">Scheda</button>
-          <button class="tab" data-tab="base">Base</button>
-          <button class="tab" data-tab="stats">stats</button>
-          <button class="tab" data-tab="attacchi">attacchi</button>
-          <button class="tab" data-tab="spell">spell</button>
-          <button class="tab" data-tab="notes">Note</button>
-        </div>
-
-        <section data-panel="base">
-          <div class="field-group">
-            <div class="field-group-title">Identità</div>
-            <div class="grid grid-2">
-              <div class="field">
-                <label>Nome PG</label>
-                <input id="f_name" />
-              </div>
-              <div class="field">
-                <label>Giocatore</label>
-                <input id="f_player" />
-              </div>
-            </div>
-            <div class="grid grid-3">
-              <div class="field">
-                <label>Classe</label>
-                <input id="f_class" />
-              </div>
-              <div class="field">
-                <label>Livello</label>
-                <input id="f_level" type="number" min="1" max="20" />
-              </div>
-              <div class="field">
-                <label>Razza</label>
-                <input id="f_race" />
-              </div>
-            </div>
-            <div class="grid grid-3">
-              <div class="field">
-                <label>Background</label>
-                <input id="f_background" />
-              </div>
-              <div class="field">
-                <label>Allineamento</label>
-                <input id="f_alignment" />
-              </div>
-              <div class="field">
-                <label>Esperienza</label>
-                <input id="f_xp" type="number" min="0" />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section data-panel="notes" hidden>
-          <div class="field-group">
-            <div class="field-group-title">Note</div>
-            <div class="field">
-              <textarea id="f_notes"></textarea>
-            </div>
-          </div>
-        </section>
-
-        <section data-panel="classic" hidden>
-          <div class="field-group">
-            <div class="field-group-title">Scheda classica</div>
-            <div class="classic" id="classicView">
-              Seleziona un personaggio per vedere la scheda.
-            </div>
-          </div>
-        </section>
-      </main>
+      <div class="stats-grid">
+        <div class="stat"><label>Forza</label><div class="stat-score" id="strScore">10</div><div id="strMod">+0</div></div>
+        <div class="stat"><label>Destrezza</label><div class="stat-score" id="dexScore">10</div><div id="dexMod">+0</div></div>
+        <div class="stat"><label>Costituzione</label><div class="stat-score" id="conScore">10</div><div id="conMod">+0</div></div>
+        <div class="stat"><label>Intelligenza</label><div class="stat-score" id="intScore">10</div><div id="intMod">+0</div></div>
+        <div class="stat"><label>Saggezza</label><div class="stat-score" id="wisScore">10</div><div id="wisMod">+0</div></div>
+        <div class="stat"><label>Carisma</label><div class="stat-score" id="chaScore">10</div><div id="chaMod">+0</div></div>
+      </div>
+      <div>
+        <label>Competenze/Lingue</label><textarea id="proficiencies"></textarea>
+        <label>Abilità (salvataggi/skills)</label><textarea id="skills"></textarea>
+      </div>
     </div>
+    <div class="attacks-grid" id="attacks">
+      <div class="attack">
+        <label>Nome Attacco</label><input class="attackName">
+        <label>Bonus Attacco</label><input class="attackBonus">
+        <label>Danno/Tipo</label><input class="attackDamage">
+        <label>Tag</label><input class="attackTag" placeholder="azione,bonus,reazione,rituale,altro">
+        <button class="btn btn-danger" onclick="removeAttack(this)"> Rimuovi </button>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="addAttack()">+ Aggiungi Attacco</button>
+    <div class="grid">
+      <div>
+        <label>Equipaggiamento</label><textarea id="equipment"></textarea>
+      </div>
+      <div>
+        <label>Incantesimi (lista)</label><textarea id="spells"></textarea>
+        <label>Tratti/Features</label><textarea id="features"></textarea>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="saveCurrent()">💾 Salva</button>
+    <button class="btn btn-danger" id="deleteBtn" onclick="deleteCurrent()" disabled>🗑 Elimina</button>
+  </div>
 
-    <footer>
-      Dati sincronizzati su Google Drive tramite Apps Script.
-    </footer>
+  <!-- Sezione Tag/Filtri -->
+  <div id="tags" class="section">
+    <div class="tag-filter">
+      <div class="tag-btn active" data-tag="all">Tutti</div>
+      <div class="tag-btn" data-tag="azione">Azioni</div>
+      <div class="tag-btn" data-tag="bonus">Bonus</div>
+      <div class="tag-btn" data-tag="reazione">Reazioni</div>
+      <div class="tag-btn" data-tag="rituale">Rituali</div>
+      <div class="tag-btn" data-tag="altro">Altro</div>
+    </div>
+    <div class="tagged-items" id="taggedItems"></div>
+  </div>
+
+  <!-- Vista Stampa Scheda Ufficiale -->
+  <div id="printView" class="section print-view" style="display:none;">
+    <h2 id="printName"></h2>
+    <!-- Layout fedele PDF: stats in alto, skills sotto, attacchi, features etc. [web:29] -->
+    <div class="grid">
+      <div id="printClassLevel"></div><div id="printRaceBg"></div><div id="printHpAc"></div>
+    </div>
+    <!-- Stats row -->
+    <div class="stats-grid" style="grid-template-columns: repeat(6,1fr);">
+      <div id="printStr"></div><div id="printDex"></div><div id="printCon"></div>
+      <div id="printInt"></div><div id="printWis"></div><div id="printCha"></div>
+    </div>
+    <div class="grid">
+      <div id="printSkills"></div><div id="printAttacksPrint"></div><div id="printFeatures"></div>
+    </div>
+    <button class="btn" onclick="window.print()">Stampa PDF</button>
   </div>
 
   <script>
-    const STORAGE_KEY = "dnd_chars_v1";
+    const STORAGE_KEY = "dnd_chars_v2";
+    // Sostituisci con la tua URL Apps Script [conversation_history:13]
     const API_URL = "https://script.google.com/macros/s/AKfycbzgtRqkLwkU69wXP16Y-w72jjz8Xd18fwuENVrSQk3OEIHPHMCOrNCuHBq54agyyJg/exec";
+    let characters = [], currentId = null, dirty = false;
 
-    function loadAllCharsLocal() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return [];
-        const arr = JSON.parse(raw);
-        if (!Array.isArray(arr)) return [];
-        return arr;
-      } catch (e) {
-        console.error(e);
-        return [];
-      }
-    }
-    function saveAllCharsLocal(chars) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(chars));
-    }
+    // Calc mod
+    function mod(score) { return Math.floor((score - 10) / 2); }
 
-    let chars = loadAllCharsLocal();
-    let currentId = null;
-    let dirty = false;
-
-    const fields = ["name","player","class","level","race","background","alignment","xp","notes"];
-
-    function fieldEl(key) { return document.getElementById("f_" + key); }
-
-    function collectForm() {
-      const o = {};
-      fields.forEach(k => {
-        const el = fieldEl(k);
-        if (!el) return;
-        o[k] = el.value || "";
-      });
-      return o;
-    }
-    function applyForm(obj) {
-      fields.forEach(k => {
-        const el = fieldEl(k);
-        if (!el) return;
-        el.value = (obj && obj[k]) || "";
+    // Load stat inputs change listeners
+    function updateMods() {
+      ['str','dex','con','int','wis','cha'].forEach(stat => {
+        const score = parseInt(document.getElementById(stat + 'Score').value) || 10;
+        document.getElementById(stat + 'Mod').textContent = '+' + (mod(score) >= 0 ? mod(score) : mod(score));
+        document.getElementById(stat + 'Score').nextSibling.textContent = score;
       });
     }
-
-    function setDirty(v) {
-      dirty = v;
-      const pill = document.getElementById("statusPill");
-      pill.textContent = v ? "Modifiche non salvate" : "Salvato";
-      pill.classList.toggle("pill-danger", v);
-      document.getElementById("saveBtn").disabled = !v || !currentId;
-    }
-
-    function updateHeader() {
-      const nameEl = document.getElementById("currentName");
-      const subEl = document.getElementById("currentSub");
-      if (!currentId) {
-        nameEl.textContent = "Nessun PG selezionato";
-        subEl.textContent = "Crea o seleziona un personaggio dalla lista a sinistra.";
-        return;
-      }
-      const d = collectForm();
-      nameEl.textContent = d.name || "(senza nome)";
-      const meta = [];
-      if (d.level) meta.push("Lv " + d.level);
-      if (d.class) meta.push(d.class);
-      if (d.race) meta.push(d.race);
-      subEl.textContent = meta.join(" · ") || "Scheda DnD 5e";
-    }
-
-    function updateClassic() {
-      const el = document.getElementById("classicView");
-      if (!currentId) {
-        el.textContent = "Seleziona un personaggio per vedere la scheda.";
-        return;
-      }
-      const d = collectForm();
-      el.innerHTML = `
-        <div class="classic-line">
-          <span class="classic-label">Nome</span>
-          <span class="classic-value">${d.name || ""}</span>
-        </div>
-        <div class="classic-line">
-          <span class="classic-label">Classe & Livello</span>
-          <span class="classic-value">${(d.class || "") + (d.level ? " " + d.level : "")}</span>
-        </div>
-        <div class="classic-line">
-          <span class="classic-label">Razza</span>
-          <span class="classic-value">${d.race || ""}</span>
-        </div>
-        <div class="classic-line">
-          <span class="classic-label">Background</span>
-          <span class="classic-value">${d.background || ""}</span>
-        </div>
-        <div class="classic-line">
-          <span class="classic-label">Allineamento</span>
-          <span class="classic-value">${d.alignment || ""}</span>
-        </div>
-        <div class="classic-line">
-          <span class="classic-label">XP</span>
-          <span class="classic-value">${d.xp || ""}</span>
-        </div>
-        <div class="classic-line">
-          <span class="classic-label">Note</span>
-          <span class="classic-value">${(d.notes || "").split("\\n").join(" · ")}</span>
-        </div>
-      `;
-    }
-
-    function renderCharList(filter = "") {
-      const listEl = document.getElementById("charList");
-      const emptyNote = document.getElementById("charEmptyNote");
-      listEl.innerHTML = "";
-      const q = filter.trim().toLowerCase();
-      const filtered = chars.filter(c => {
-        if (!q) return true;
-        const text = (c.name || "") + " " + (c.class || "") + " " + (c.race || "");
-        return text.toLowerCase().includes(q);
-      });
-      filtered.forEach(c => {
-        const div = document.createElement("div");
-        div.className = "char-item" + (c.id === currentId ? " active" : "");
-        div.dataset.id = c.id;
-        const main = document.createElement("div");
-        main.className = "char-main";
-        const row = document.createElement("div");
-        row.className = "char-name-row";
-        const dot = document.createElement("span");
-        dot.className = "dot";
-        const name = document.createElement("span");
-        name.className = "char-name";
-        name.textContent = c.name || "(senza nome)";
-        row.appendChild(dot); row.appendChild(name);
-        const meta = document.createElement("div");
-        meta.className = "char-meta";
-        meta.textContent = ((c.level ? "Lv " + c.level + " · " : "") + (c.class || "") + " " + (c.race || "")).trim();
-        main.appendChild(row); main.appendChild(meta);
-        div.appendChild(main);
-        div.addEventListener("click", () => loadChar(c.id));
-        listEl.appendChild(div);
-      });
-      emptyNote.style.display = chars.length ? "none" : "block";
-    }
+    ['str','dex','con','int','wis','cha'].forEach(stat => {
+      document.getElementById(stat + 'Score').addEventListener('input', updateMods);
+    });
 
     function newChar() {
-      if (dirty && !confirm("Ci sono modifiche non salvate. Continuare?")) return;
-      const id = Date.now().toString(36);
-      const c = { id, name: "", class: "", level: "", race: "" };
-      chars.push(c);
-      saveAllCharsLocal(chars);
-      currentId = id;
-      applyForm(c);
+      currentId = null;
+      document.querySelectorAll('input,textarea').forEach(el => el.value = '');
+      ['str','dex','con','int','wis','cha'].forEach(stat => document.getElementById(stat + 'Score').value = 10);
+      updateMods();
+      document.getElementById('name').focus();
       setDirty(false);
-      updateHeader();
-      updateClassic();
-      renderCharList(document.getElementById("searchInput").value);
-      document.getElementById("deleteBtn").disabled = false;
+      document.getElementById('deleteBtn').disabled = true;
+      renderCharList('');
     }
 
-    function loadChar(id) {
-      if (dirty && !confirm("Ci sono modifiche non salvate. Continuare?")) return;
-      const c = chars.find(x => x.id === id);
-      if (!c) return;
-      currentId = id;
-      applyForm(c);
+    function saveCurrent() {
+      const char = {
+        id: currentId || Date.now().toString(),
+        name: document.getElementById('name').value,
+        classLevel: document.getElementById('classLevel').value,
+        raceBg: document.getElementById('raceBg').value,
+        hp: document.getElementById('hp').value,
+        ac: document.getElementById('ac').value,
+        initiative: document.getElementById('initiative').value,
+        speed: document.getElementById('speed').value,
+        strScore: parseInt(document.getElementById('strScore').value),
+        dexScore: parseInt(document.getElementById('dexScore').value),
+        conScore: parseInt(document.getElementById('conScore').value),
+        intScore: parseInt(document.getElementById('intScore').value),
+        wisScore: parseInt(document.getElementById('wisScore').value),
+        chaScore: parseInt(document.getElementById('chaScore').value),
+        proficiencies: document.getElementById('proficiencies').value,
+        skills: document.getElementById('skills').value,
+        equipment: document.getElementById('equipment').value,
+        spells: document.getElementById('spells').value,
+        features: document.getElementById('features').value,
+        attacks: Array.from(document.querySelectorAll('.attack')).map(row => ({
+          name: row.querySelector('.attackName').value,
+          bonus: row.querySelector('.attackBonus').value,
+          damage: row.querySelector('.attackDamage').value,
+          tag: row.querySelector('.attackTag').value
+        })).filter(a => a.name)
+      };
+      const idx = characters.findIndex(c => c.id === char.id);
+      if (idx > -1) characters[idx] = char; else characters.push(char);
+      currentId = char.id;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(characters));
       setDirty(false);
-      updateHeader();
-      updateClassic();
-      renderCharList(document.getElementById("searchInput").value);
-      document.getElementById("deleteBtn").disabled = false;
-    }
-
-    async function saveCurrent() {
-      if (!currentId) return;
-      const data = collectForm();
-      data.id = currentId;
-      const idx = chars.findIndex(c => c.id === currentId);
-      if (idx >= 0) chars[idx] = data; else chars.push(data);
-      saveAllCharsLocal(chars);
-      renderCharList(document.getElementById("searchInput").value);
-      setDirty(false);
-      updateHeader();
-      updateClassic();
-      document.getElementById("deleteBtn").disabled = false;
-      await syncToServer();
+      document.querySelectorAll('input,textarea').forEach(el => el.classList.remove('dirty'));
+      syncToServer();
+      renderCharList(document.getElementById('searchInput').value);
+      document.getElementById('deleteBtn').disabled = false;
     }
 
     function deleteCurrent() {
-      if (!currentId) return;
-      if (!confirm("Eliminare questo personaggio?")) return;
-      chars = chars.filter(c => c.id !== currentId);
-      saveAllCharsLocal(chars);
-      currentId = null;
-      applyForm({});
-      setDirty(false);
-      updateHeader();
-      updateClassic();
-      renderCharList(document.getElementById("searchInput").value);
-      document.getElementById("deleteBtn").disabled = true;
-      syncToServer();
+      if (currentId && confirm('Elimina PG?')) {
+        characters = characters.filter(c => c.id !== currentId);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(characters));
+        syncToServer();
+        newChar();
+      }
     }
 
-    fields.forEach(k => {
-      const el = fieldEl(k);
-      if (!el) return;
-      el.addEventListener("input", () => {
-        if (!currentId) return;
-        setDirty(true);
-        updateHeader();
-        updateClassic();
-      });
-    });
+    function loadChar(char) {
+      document.getElementById('name').value = char.name || '';
+      document.getElementById('classLevel').value = char.classLevel || '';
+      document.getElementById('raceBg').value = char.raceBg || '';
+      document.getElementById('hp').value = char.hp || '';
+      document.getElementById('ac').value = char.ac || '';
+      document.getElementById('initiative').value = char.initiative || '';
+      document.getElementById('speed').value = char.speed || '';
+      document.getElementById('strScore').value = char.strScore || 10;
+      document.getElementById('dexScore').value = char.dexScore || 10;
+      document.getElementById('conScore').value = char.conScore || 10;
+      document.getElementById('intScore').value = char.intScore || 10;
+      document.getElementById('wisScore').value = char.wisScore || 10;
+      document.getElementById('chaScore').value = char.chaScore || 10;
+      updateMods();
+      document.getElementById('proficiencies').value = char.proficiencies || '';
+      document.getElementById('skills').value = char.skills || '';
+      document.getElementById('equipment').value = char.equipment || '';
+      document.getElementById('spells').value = char.spells || '';
+      document.getElementById('features').value = char.features || '';
+      currentId = char.id;
+      renderAttacks(char.attacks || []);
+      setDirty(false);
+      document.getElementById('deleteBtn').disabled = false;
+    }
 
-    document.getElementById("newCharBtn").addEventListener("click", newChar);
-    document.getElementById("saveBtn").addEventListener("click", saveCurrent);
-    document.getElementById("deleteBtn").addEventListener("click", deleteCurrent);
-    document.getElementById("searchInput").addEventListener("input", e => {
-      renderCharList(e.target.value);
-    });
+    function addAttack() {
+      const div = document.createElement('div');
+      div.className = 'attack';
+      div.innerHTML = `
+        <label>Nome</label><input class="attackName">
+        <label>Bonus</label><input class="attackBonus">
+        <label>Danno</label><input class="attackDamage">
+        <label>Tag</label><input class="attackTag" placeholder="azione,bonus,reazione,rituale,altro">
+        <button class="btn btn-danger" onclick="removeAttack(this)">Rimuovi</button>
+      `;
+      document.getElementById('attacks').appendChild(div);
+    }
 
-    document.querySelectorAll(".tab").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const tab = btn.dataset.tab;
-        document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b === btn));
-        document.querySelectorAll("[data-panel]").forEach(p => {
-          p.hidden = p.dataset.panel !== tab;
+    function removeAttack(btn) {
+      btn.closest('.attack').remove();
+    }
+
+    function renderAttacks(attacks) {
+      document.getElementById('attacks').innerHTML = attacks.map(a => `
+        <div class="attack">
+          <label>Nome</label><input class="attackName" value="${a.name}">
+          <label>Bonus</label><input class="attackBonus" value="${a.bonus}">
+          <label>Danno</label><input class="attackDamage" value="${a.damage}">
+          <label>Tag</label><input class="attackTag" value="${a.tag}">
+          <button class="btn btn-danger" onclick="removeAttack(this)">Rimuovi</button>
+        </div>
+      `).join('') || '<div class="attack"><em>Aggiungi il primo attacco</em></div>';
+    }
+
+    function renderCharList(filter) {
+      const list = document.getElementById('charList');
+      const filtered = characters.filter(c => 
+        c.name.toLowerCase().includes(filter.toLowerCase()) || 
+        c.classLevel.toLowerCase().includes(filter.toLowerCase())
+      );
+      list.innerHTML = filtered.map(c => 
+        `<div class="char-item ${c.id === currentId ? 'active' : ''}" onclick="loadChar(${JSON.stringify(c)})">
+          <strong>${c.name}</strong><br>${c.classLevel} ${c.raceBg}<br>HP: ${c.hp}
+        </div>`
+      ).join('');
+    }
+
+    function showSection(id) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      document.querySelectorAll('nav .btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      if (id === 'tags') renderTags();
+      if (id === 'print') showPrintView();
+    }
+
+    function renderTags() {
+      const items = characters.find(c => c.id === currentId)?.attacks || [];
+      const container = document.getElementById('taggedItems');
+      container.innerHTML = items.map(a => `<div class="tagged-item">${a.name}: ${a.damage} (${a.tag})</div>`).join('');
+    }
+
+    // Tag filter
+    document.querySelectorAll('.tag-btn').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const tag = btn.dataset.tag;
+        const items = document.querySelectorAll('.tagged-item');
+        items.forEach(item => {
+          item.style.display = (tag === 'all' || item.textContent.includes(tag)) ? 'block' : 'none';
         });
-      });
+      };
     });
 
+    function showPrintView() {
+      const char = characters.find(c => c.id === currentId);
+      if (!char) return;
+      document.getElementById('printName').textContent = char.name;
+      document.getElementById('printClassLevel').innerHTML = `<strong>${char.classLevel}</strong>`;
+      document.getElementById('printRaceBg').innerHTML = `<strong>${char.raceBg}</strong>`;
+      document.getElementById('printHpAc').innerHTML = `HP: ${char.hp} AC: ${char.ac}`;
+      document.getElementById('printStr').innerHTML = `FOR ${char.strScore} (${mod(char.strScore)})`;
+      // ... simili per altri stats [web:29]
+      document.getElementById('printSkills').textContent = char.skills;
+      document.getElementById('printFeatures').textContent = char.features;
+      document.getElementById('printAttacksPrint').innerHTML = char.attacks.map(a => `${a.name} +${a.bonus} ${a.damage}`).join('<br>');
+      document.getElementById('printView').style.display = 'block';
+      document.querySelectorAll('.section:not(#printView)').forEach(s => s.style.display = 'none');
+    }
+
+    // Dirty flag
+    document.querySelectorAll('input,textarea').forEach(el => {
+      el.oninput = () => {
+        if (!dirty) {
+          dirty = true;
+          el.classList.add('dirty');
+        }
+      };
+    });
+
+    // Search
+    document.getElementById('searchInput').oninput = (e) => renderCharList(e.target.value);
+
+    // Sync Drive [conversation_history:14]
     async function syncFromServer() {
-      const badge = document.getElementById("syncBadge");
+      const badge = document.getElementById('syncBadge');
       try {
-        badge.textContent = "Sync: caricamento…";
+        badge.textContent = 'Sync: caricamento...';
         const res = await fetch(API_URL);
-        if (!res.ok) throw new Error("HTTP " + res.status);
         const data = await res.json();
-        if (Array.isArray(data.characters)) {
-          chars = data.characters;
-          saveAllCharsLocal(chars);
-          renderCharList("");
-          badge.textContent = "Sync: OK (Drive)";
+        if (data.ok && data.characters) {
+          characters = data.characters;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(characters));
+          renderCharList('');
+          badge.textContent = 'Sync: OK (Drive)';
+          badge.className = 'badge sync-ok';
         } else {
-          badge.textContent = "Sync: file vuoto (Drive)";
+          throw new Error(data.error || 'No data');
         }
       } catch (err) {
         console.error(err);
-        badge.textContent = "Sync: errore (uso cache locale)";
-        renderCharList("");
+        loadLocal();
+        badge.textContent = 'Sync: locale only';
+        badge.className = 'badge sync-err';
       }
     }
 
     async function syncToServer() {
-      const badge = document.getElementById("syncBadge");
+      const badge = document.getElementById('syncBadge');
       try {
-        badge.textContent = "Sync: invio…";
-        const payload = { characters: chars };
+        badge.textContent = 'Sync: salvataggio...';
         const res = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
+          method: 'POST',
+          body: JSON.stringify({ characters }),
+          headers: { 'Content-Type': 'application/json' }
         });
         const data = await res.json();
         if (data.ok) {
-          badge.textContent = "Sync: OK (Drive)";
+          badge.textContent = 'Sync: OK (Drive)';
+          badge.className = 'badge sync-ok';
         } else {
-          badge.textContent = "Sync: errore salvataggio";
+          throw new Error(data.error);
         }
       } catch (err) {
         console.error(err);
-        badge.textContent = "Sync: errore salvataggio";
+        badge.textContent = 'Sync: errore salvataggio';
+        badge.className = 'badge sync-err';
       }
     }
 
-    renderCharList("");
-    setDirty(false);
-    document.getElementById("deleteBtn").disabled = !currentId;
+    function loadLocal() {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) characters = JSON.parse(stored);
+      renderCharList('');
+    }
+
+    function setDirty(state) { dirty = state; }
+
+    // Init
+    loadLocal();
     syncFromServer();
+    newChar();
+    addAttack(); // Uno di default
   </script>
 </body>
 </html>
