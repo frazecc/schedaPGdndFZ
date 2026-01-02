@@ -126,7 +126,7 @@
   </div>
 
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbwRlAGCbEBdyTa4fD51XWSAin7oG8YbFrsvAZkVEew34yWGr4oQNT1YXzrpt5TrAhE/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbz4pfSKWCV2YttICNOML0yAa4ykpVqi50JBx5ilu2z-Iln0Xn-lQviRQtdg8InqloBp/exec';
     let characters = [];
     let currentIndex = -1;
 
@@ -220,12 +220,16 @@
     async function syncToServer() {
       try {
         updateStatus('Salvataggio su Drive...');
-        await fetch(API_URL, {
-          method: 'POST',
-          body: JSON.stringify({characters}),
-          headers: {'Content-Type': 'application/json'}
-        });
-        updateStatus('Dati salvati su Google Drive');
+        const data = JSON.stringify({characters});
+        // Codifica dati per invio via GET (evita preflight CORS)
+        const url = API_URL + '?action=save&data=' + encodeURIComponent(data);
+        const res = await fetch(url);
+        const json = await res.json();
+        if (json.ok) {
+           updateStatus('Dati salvati su Google Drive');
+        } else {
+           throw new Error(json.error || 'Errore sconosciuto');
+        }
       } catch (e) {
         updateStatus('Errore salvataggio: ' + e.message, true);
       }
