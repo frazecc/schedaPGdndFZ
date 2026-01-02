@@ -35,13 +35,13 @@
 </head>
 <body>
   <div class="container">
-    <h1>🐉 Gestore Schede D&D 5e</h1>
+    <h1>Gestore Schede D&D 5e</h1>
     
     <div class="controls">
-      <button id="newBtn">➕ Nuovo PG</button>
-      <button id="loadBtn">📥 Carica da Drive</button>
-      <button id="saveBtn">💾 Salva su Drive</button>
-      <button id="deleteBtn" class="danger hidden">🗑️ Elimina PG</button>
+      <button id="newBtn">Nuovo PG</button>
+      <button id="loadBtn">Carica da Drive</button>
+      <button id="saveBtn">Salva su Drive</button>
+      <button id="deleteBtn" class="danger hidden">Elimina PG</button>
     </div>
     
     <div id="status"></div>
@@ -103,12 +103,12 @@
           <input id="puntiFerita" type="number" placeholder="Punti Ferita Massimi">
           <input id="classeArmatura" type="number" placeholder="Classe Armatura (CA)">
           <input id="iniziativa" type="number" placeholder="Bonus Iniziativa">
-          <input id="velocita" type="number" placeholder="Velocità (piedi)">
+          <input id="velocita" type="number" placeholder="Velocita (piedi)">
         </div>
       </div>
       
       <div class="section">
-        <h3>Attacchi & Azioni</h3>
+        <h3>Attacchi e Azioni</h3>
         <textarea id="azioni" rows="5" placeholder="Formato: Nome Attacco | Danni | Tag (es: Spada Lunga | 1d8+3 | azione)&#10;Una per riga, usa tag: azione, bonus, reazione, rituale, altro"></textarea>
       </div>
       
@@ -119,7 +119,7 @@
       </div>
       
       <div class="section">
-        <h3>Note & Equipaggiamento</h3>
+        <h3>Note e Equipaggiamento</h3>
         <textarea id="note" rows="4" placeholder="Equipaggiamento, tesori, note di gioco..."></textarea>
       </div>
     </div>
@@ -150,11 +150,11 @@
     function renderList() {
       const list = document.getElementById('pgList');
       if (characters.length === 0) {
-        list.innerHTML = '<p>Nessun personaggio. Clicca "Nuovo PG" per iniziare.</p>';
+        list.innerHTML = '<p>Nessun personaggio. Clicca Nuovo PG per iniziare.</p>';
         return;
       }
       list.innerHTML = characters.map((c, i) => 
-        `<div class="pg-item" onclick="loadPG(${i})">${c.nome || 'Senza Nome'} (${c.classe || 'N/D'})</div>`
+        '<div class="pg-item" onclick="loadPG(' + i + ')">' + (c.nome || 'Senza Nome') + ' (' + (c.classe || 'N/D') + ')</div>'
       ).join('');
     }
 
@@ -191,7 +191,7 @@
         if (el) pg[key] = el.value;
       });
       renderList();
-      updateStatus('Personaggio salvato in memoria. Clicca "Salva su Drive" per sincronizzare online.');
+      updateStatus('Personaggio salvato in memoria. Clicca Salva su Drive per sincronizzare online.');
     }
 
     function deletePG() {
@@ -211,9 +211,9 @@
         const data = await res.json();
         characters = data.characters || [];
         renderList();
-        updateStatus('✅ Dati caricati da Google Drive');
+        updateStatus('Dati caricati da Google Drive');
       } catch (e) {
-        updateStatus('❌ Errore caricamento: ' + e.message, true);
+        updateStatus('Errore caricamento: ' + e.message, true);
       }
     }
 
@@ -225,9 +225,9 @@
           body: JSON.stringify({characters}),
           headers: {'Content-Type': 'application/json'}
         });
-        updateStatus('✅ Dati salvati su Google Drive');
+        updateStatus('Dati salvati su Google Drive');
       } catch (e) {
-        updateStatus('❌ Errore salvataggio: ' + e.message, true);
+        updateStatus('Errore salvataggio: ' + e.message, true);
       }
     }
 
@@ -241,15 +241,14 @@
         return;
       }
 
-      const lines = azioniText.split('
-').filter(l => l.trim());
+      const lines = azioniText.split('\n').filter(l => l.trim());
       const filtered = filter ? lines.filter(l => l.toLowerCase().includes(filter)) : lines;
       
       tagList.innerHTML = filtered.map(line => {
         const parts = line.split('|').map(p => p.trim());
         const name = parts[0] || 'N/D';
         const tag = parts[2] || 'altro';
-        return `<div class="tag-item">${name} <small>(${tag})</small></div>`;
+        return '<div class="tag-item">' + name + ' <small>(' + tag + ')</small></div>';
       }).join('') || '<p>Nessuna azione corrisponde al filtro.</p>';
     }
 
